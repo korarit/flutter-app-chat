@@ -25,6 +25,7 @@ dependencies:
   flutter_line_sdk: ^2.3.7
   crypto: ^3.0.6
   cloud_functions: ^4.7.6
+  firebase_app_check: ^0.2.2+7
 
 dev_dependencies:
   flutter_test:
