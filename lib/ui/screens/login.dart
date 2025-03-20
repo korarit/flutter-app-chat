@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 //function
 import '../../function/login_with_social.dart';
+import '../../function/login_with_email.dart';
 
 //widgets
 import '../widgets/password_input.dart';
 import '../widgets/social_button.dart';
+import '../widgets/loading_button.dart';
 
 
 
@@ -32,17 +34,66 @@ class _LoginScreen extends ConsumerState<LoginScreen> {
 
   final form = GlobalKey<FormState>();
 
-  void sumbitForm() {
+
+
+  void sumbitForm() async {
     final bool isValid = form.currentState!.validate();
     if (!isValid) {
       return;
     }
 
     form.currentState!.save();
+
+    final email = ref.read(emailProvider);
+    final password = ref.read(passwordProvider);
+
+    if(email == null || password == null) {
+      return;
+    }
+
+
+    ref.read(loginLoadingProvider.notifier).state = true;
+    
+    final error = await loginWithEmail(
+      email: email,
+      password: password,
+    );
+
+    if (error != null) {
+      // Handle error
+      print(error);
+      ref.read(loginLoadingProvider.notifier).state = false;
+      return;
+    }
+
+    return;
+
   }
+
+  @override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    ref.read(emailProvider.notifier).state = null;
+    ref.read(passwordProvider.notifier).state = null;
+    ref.read(hidePasswordProvider.notifier).state = true;
+    ref.read(loginLoadingProvider.notifier).state = false;
+  });
+}
+
   @override
   Widget build(BuildContext context) {
     final hiddenPassword = ref.watch(hidePasswordProvider);
+    final loginLogin = ref.watch(loginLoadingProvider);
+
+    //reset form when navigate to this screen
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      form.currentState!.reset();
+    });
+
+
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: SafeArea(
@@ -130,10 +181,14 @@ class _LoginScreen extends ConsumerState<LoginScreen> {
                               ),
                               validator: (email) {
                                 // Handle email change
-                                if (email == null || email.isEmpty) {
+                                if (email == null || email.trim().isEmpty) {
                                   return 'กรุณากรอกอีเมล';
                                 }
                                 return null;
+                              },
+                              onSaved: (email) {
+                                // Handle email save
+                                ref.read(emailProvider.notifier).state = email;
                               },
                             ),
 
@@ -153,13 +208,14 @@ class _LoginScreen extends ConsumerState<LoginScreen> {
                             },
                             validator: (password) {
                               // Handle password change
-                              if (password == null || password.isEmpty) {
+                              if (password == null || password.trim().isEmpty) {
                                 return 'กรุณากรอกรหัสผ่าน';
                               }
                               return null;
                             },
                             onSaved: (password) {
                               // Handle password save
+                              ref.read(passwordProvider.notifier).state = password;
                             },
                           ),
                         ],
@@ -189,26 +245,15 @@ class _LoginScreen extends ConsumerState<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 48,
-                      child: ElevatedButton(
+                      child: LoadingButton(
+                        text: 'เข้าสู่ระบบ',
+                        backgroundColor: const Color(0xFF2563EB),
+                        isLoading: loginLogin,
                         onPressed: () {
                           // Handle sign in
                           sumbitForm();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'เข้าสู่ระบบ',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                        }
+                      )
                     ),
                     const SizedBox(height: 30),
                     // OR divider
