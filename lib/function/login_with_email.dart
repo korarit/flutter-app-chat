@@ -4,12 +4,51 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+//function
+import 'package:flutter_android_chatapp/function/notification.dart';
+
 Future<String?> loginWithEmail({
   required String email,
   required String password,
 }) async {
-  await Future.delayed(const Duration(seconds: 1));
+  try{
+  final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: email,
+    password: password,
+  );
+
+  final user = userCredential.user;
+
+  if (user == null) {
+    return 'ไม่พบผู้ใช้งาน';
+  }
+
+  final userData = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+  final String? fcmToken = await NotificationService.instance.getFCMToken();
+
+  if (userData.exists) {
+    //update fcm token
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      'fcm': fcmToken,
+    });
+
+    return null;
+  }
+
   return null;
+
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'user-not-found') {
+      return 'ไม่พบผู้ใช้งาน';
+    } else if (e.code == 'wrong-password') {
+      return 'รหัสผ่านไม่ถูกต้อง';
+    } else if (e.code == 'invalid-credential') {
+      return 'อีเมลไม่ถูกต้อง';
+    } else {
+      return 'เกิดข้อผิดพลาดในการล็อกอิน';
+    }
+  }
 }
 
 final _firebaseAuth = FirebaseAuth.instance;
@@ -49,15 +88,22 @@ Future<String?> registerWithEmail({
 
     print('test uid: ${userCredential.user?.uid}');
 
-    FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
+    final String? fcmToekn = await NotificationService.instance.getFCMToken();
+
+    //check if user is new
+
+    await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
       'name': name,
       'email': email,
       'image_url': urlImage,
+      'fcm': fcmToekn,
     });
 
     if (urlImage != '') {
       await userCredential.user?.updatePhotoURL(urlImage);
     }
+
+    await NotificationService.instance.subscribeToTopic('default');
 
 
     return null;
