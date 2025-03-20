@@ -366,8 +366,11 @@ class _SignUp extends ConsumerState<SignUp> {
                 });
               },
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (value == null || value.trim().isEmpty) {
                   return 'กรุณากรอกรหัสผ่าน';
+                }
+                if (value.length < 6) {
+                  return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
                 }
                 return null;
               },
@@ -399,8 +402,11 @@ class _SignUp extends ConsumerState<SignUp> {
                 });
               },
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (value == null || value.trim().isEmpty) {
                   return 'กรุณากรอกยืนยันรหัสผ่าน';
+                }
+                if (value.length < 6) {
+                  return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
                 }
                 return null;
               },
