@@ -2,10 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+//providers
 import 'package:flutter_android_chatapp/provider/auth_provider.dart';
+
+//screens
 import 'package:flutter_android_chatapp/ui/screens/login.dart';
 import 'package:flutter_android_chatapp/ui/screens/signup.dart';
 import 'package:flutter_android_chatapp/ui/screens/home.dart';
+import 'package:flutter_android_chatapp/ui/screens/chat.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -24,7 +29,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
       if (user != null && (isOnLogin || isOnSignup)) {
-        return '/home';
+        return '/chat/default';
       }
       return null;
     },
@@ -44,6 +49,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:room',
+        builder: (context, state) {
+          final room = state.pathParameters['room'];
+          if (room == null) {
+            return const SizedBox.shrink();
+          }
+          return ChatScreen(roomId: room);
+        },
       ),
     ],
   );
