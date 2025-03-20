@@ -6,6 +6,9 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'firebase_options.dart';
 
+//fuction
+import 'package:flutter_android_chatapp/function/notification.dart';
+
 import 'package:flutter_android_chatapp/routing.dart';
 
 void main() async {
@@ -13,12 +16,19 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Firebase App Check
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
   );
+
+  // Line SDK
   await LineSDK.instance.setup("2007091112").then((_) {
     print("LineSDK Prepared");
   });
+
+  await NotificationService.instance.initialize();
+
   runApp(const ProviderScope(child: MainApp()));
 }
 
