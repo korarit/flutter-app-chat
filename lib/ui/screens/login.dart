@@ -88,7 +88,7 @@ void didChangeDependencies() {
     final loginLogin = ref.watch(loginLoadingProvider);
 
     //reset form when navigate to this screen
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       form.currentState!.reset();
     });
 
