@@ -119,7 +119,6 @@ class _SignUp extends ConsumerState<SignUp> {
       name: name,
       profileImage: ref.read(profileImageProvider),
     );
-    ref.read(isLoadingProvider.notifier).state = false;
 
     if (errorMessage != null) {
       ref.read(errorMessagesProvider.notifier).state = errorMessage;
